@@ -1,0 +1,58 @@
+import cv2
+import os
+import zipfile
+
+def video_to_frames(video_path, output_zip):
+    # Create a temporary directory to store frames
+    temp_folder = 'temp_frames'
+    if not os.path.exists(temp_folder):
+        os.makedirs(temp_folder)
+    
+    # Capture the video from the file
+    video_capture = cv2.VideoCapture(video_path)
+    
+    # Check if video opened successfully
+    if not video_capture.isOpened():
+        print("Error: Could not open video.")
+        return
+    
+    frame_count = 0
+    while True:
+        # Read a frame from the video
+        ret, frame = video_capture.read()
+        
+        # If the frame was read successfully
+        if ret:
+            # Construct the file path for the frame
+            frame_file_path = os.path.join(temp_folder, f'frame_{frame_count:04d}.png')
+            
+            # Save the frame as an image file
+            cv2.imwrite(frame_file_path, frame)
+            
+            # Increment the frame count
+            frame_count += 1
+        else:
+            # If no more frames, break the loop
+            break
+    
+    # Release the video capture object
+    video_capture.release()
+    print(f"Extracted {frame_count} frames.")
+    
+    # Create a zip file with all frames
+    with zipfile.ZipFile(output_zip, 'w') as zipf:
+        for root, _, files in os.walk(temp_folder):
+            for file in files:
+                zipf.write(os.path.join(root, file), file)
+    
+    # Remove the temporary frames folder
+    for file in os.listdir(temp_folder):
+        os.remove(os.path.join(temp_folder, file))
+    os.rmdir(temp_folder)
+
+    print(f"Frames are saved in {output_zip}")
+
+# Example usage
+video_path = "C:/Users/Sakshi Gupta/OneDrive/Desktop/summer training/video/bag loading part 1.mp4"
+output_zip = 'frames1.zip'
+video_to_frames(video_path, output_zip)
